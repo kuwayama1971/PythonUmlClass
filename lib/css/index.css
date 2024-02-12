@@ -1,0 +1,178 @@
+body {
+    color: #000000;
+    background-color: #cac3ec4f;
+    overflow: hidden;
+    font-size: 12px;
+}
+
+hr {
+    color: #ffffff;
+    background-color: #000000;
+    height: 1px;
+    /* 線の太さ */
+    border: 1px;
+    /* 枠の太さ */
+    border-style: solid;
+    /* 枠の種類 */
+}
+
+.error {
+    color: red;
+}
+
+.outarea {
+    background-color: #FFFFFF;
+    margin: 5px;
+    padding: 5px;
+    width: 95vw;
+    height: 50vh;
+    overflow: auto;
+}
+
+.inarea {
+    border: thin solid #000000;
+    margin: 5px;
+    padding: 5px;
+    width: 98%;
+}
+
+input.long {
+    width: 98%;
+    background-color: #FAFAFA;
+    margin: 5px;
+    padding: 5px;
+}
+
+textarea.long {
+    width: 95vw;
+    height: 50vh;
+}
+
+.ui-widget {
+    font-size: 12px;
+}
+
+.ui-autocomplete {
+    max-height: 45vh;
+    max-width: 90wh;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding-right: 10px;
+}
+
+#jquery-ui-autocomplete label {
+    float: left;
+    margin-right: 0.5em;
+    color: black;
+}
+
+.ui-autocomplete.ui-front {
+    max-height: 250px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+    /* add padding to account for vertical scrollbar */
+    z-index: 1000 !important;
+}
+
+.ui-dialog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: .2em;
+    outline: 0;
+}
+
+.long {
+    width: 90%;
+}
+
+#setting_dialog {
+    color: #ffffff;
+    background-color: #000000;
+}
+
+.setting_name {
+    width: 200px;
+    color: #ffffff;
+    background-color: #000000;
+}
+
+.setting_value {
+    width: 300px;
+    color: #ffffff;
+    background-color: #000000;
+}
+
+.setting_checkbox {
+    color: #ffffff;
+    background-color: #000000;
+}
+
+ul.log {
+    list-style-type: none;
+    font-size: 12px;
+    color: #000000;
+}
+
+input[type="search"] {
+    -webkit-appearance: searchfield;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+}
+
+/* menu */
+.menu {
+    display: flex;
+    justify-content: flex-start;
+    list-style-type: none;
+    color: #393737;
+    padding: 0;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.menu li {
+    position: relative;
+    width: 100px;
+    margin-left: 1px;
+    padding: 5px;
+    background: #d8dada;
+    list-style-type: none;
+}
+
+.menu li a {
+    color: rgb(20, 114, 192);
+}
+
+.menu li a:hover {
+    background: #eba399;
+}
+
+.menuSub {
+    position: absolute;
+    margin-left: -6px;
+    padding: 0;
+    display: none;
+}
+
+/*.openが付与された時、表示の設定*/
+.menuSub.open {
+    display: block;
+}
+
+.menuSub li a {
+    padding: 5px;
+    margin-left: -5px;
+    margin-right: -5px;
+    margin-bottom: -5px;
+    display: block;
+    color: rgb(20, 114, 192);
+    text-decoration: none;
+}
+
+.menuSub li a:hover {
+    background: #eba399;
+}

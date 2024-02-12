@@ -1,0 +1,47 @@
+{
+  "version": 0.1,
+  "setting_list": [
+    {
+      "name": "plantuml",
+      "value": "plantuml -svg --charset UTF-8",
+      "type": "input",
+      "select": "",
+      "description": "PlantUMLコマンド"
+    },
+    {
+      "name": "formatter_path",
+      "value": "/home/kuwayama/tool/python/del_comment.py",
+      "type": "input",
+      "select": "",
+      "description": "pylintのパス"
+    },
+    {
+      "name": "editor",
+      "value": "code",
+      "type": "input",
+      "select": "",
+      "description": "UMLを開くエディタ"
+    },
+    {
+      "name": "inherit_color",
+      "value": "green",
+      "type": "input",
+      "select": "",
+      "description": "継承の線の色"
+    },
+    {
+      "name": "composition_color",
+      "value": "blue",
+      "type": "input",
+      "select": "",
+      "description": "コンポジションの線の色"
+    },
+    {
+      "name": "exclude_path",
+      "value": "(.*auto.*)|(setup\\.py)|(__init__\\.py)|test",
+      "type": "input",
+      "select": "",
+      "description": "除外するパス（正規表現）"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+    "chrome_win": "start chrome",
+    "chrome_linux": "google-chrome"
+}

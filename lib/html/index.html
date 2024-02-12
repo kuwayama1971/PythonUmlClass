@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>PythonUMLClass</title>
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- jQuery UI -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+
+  <script src="js/main.js"></script>
+  <link rel="stylesheet" href="css/index.css" type="text/css">
+</head>
+
+<body>
+  <div id="msg_dialog" style="display:none;">
+    <div id="msg_text">message</div>
+  </div>
+  <hr>
+  <!-- menu -->
+  <div id="setting_dialog" style="display:none;">
+    <dl id="wrap"></dl>
+  </div>
+  <div>
+    <ul class="menu">
+      <Li><a href="#" id="exec" name="exec">実行</a></li>
+      <li><a href="#" id="stop" name="stop">停止</a></li>
+      <li>
+        設定
+        <ul class="menuSub">
+          <li><a href="#" id="setting">設定</a></li>
+          <li><a href="#" id="save_setting">設定保存</a></li>
+          <li><a href="#" id="load_setting">設定読み込み</a></li>
+        </ul>
+      </li>
+      <!--
+      <li>
+        menu3
+        <ul class="menuSub">
+          <li><a href="#">menu3-1</a></li>
+          <li><a href="#">menu3-2</a></li>
+        </ul>
+      </li>
+      -->
+    </ul>
+  </div>
+
+  <table>
+    <tr>
+      <td>
+        <div id="dialog1" style="display:none;">
+          <input class="inarea" type="search" name="search_str" id="search_str">
+        </div>
+      </td>
+      <td class="long"><input class="inarea" type="search" id="inDir" name="inDir"></td>
+      <td><input type="button" id="select_dir" value="対象フォルダ" /></td>
+    </tr>
+    <tr>
+      <td>
+        <div id="dialog2" style="display:none;">
+          <input class="inarea" type="search" name="search_str2" id="search_str2">
+        </div>
+      </td>
+      <td class="long"><input class="inarea" type="search" id="outFile" name="outFile"></td>
+      <td><input type="button" id="select_file" value="出力ファイル" /></td>
+      <td><input type="button" id="open_file" value="開く" /></td>
+    </tr>
+  </table>
+
+  <div class="outarea">
+    <ul name="log" id="log" class="log">
+    </ul>
+  </div>
+
+</body>
+
+</html>
