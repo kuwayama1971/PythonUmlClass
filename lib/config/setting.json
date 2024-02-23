@@ -38,7 +38,7 @@
     },
     {
       "name": "exclude_path",
-      "value": "(.*auto.*)|(setup\\.py)|(__init__\\.py)|test",
+      "value": "(/test./)",
       "type": "input",
       "select": "",
       "description": "除外するパス（正規表現）"

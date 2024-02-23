@@ -2,6 +2,7 @@ require "tempfile"
 require "facter"
 
 CStruct = Struct.new(:type,
+                     :file_name,
                      :name,
                      :block_count,
                      :var_list,
@@ -20,10 +21,10 @@ def print_uml(out, out_list)
     if o_list.type == :class_start
       # nop
     elsif o_list.type == :module_start
-      out.push "namespace #{o_list.name} {"
+      out.push "namespace \"#{o_list.name}\" {"
     elsif o_list.type == :class_end
       pp o_list if o_list.name == ""
-      out.push "class #{o_list.name} {"
+      out.push "class \"#{o_list.name}\" {"
       # インスタンス変数の出力
       o_list.var_list.uniq.each do |iv|
         out.push iv
@@ -35,11 +36,11 @@ def print_uml(out, out_list)
       out.push "}"
       # 継承リストの出力
       o_list.inherit_list.each do |ih|
-        out.push "#{o_list.name} -[##{@config["inherit_color"]}]-|> #{ih}"
+        out.push "\"#{o_list.name}\" -[##{@config["inherit_color"]}]-|> \"#{ih}\""
       end
       # compo
       o_list.composition_list.uniq.each do |co|
-        out.push "#{o_list.name} *-[##{@config["composition_color"]}]- #{co}"
+        out.push "\"#{o_list.name}\" *-[##{@config["composition_color"]}]- \"#{co}\""
       end
     elsif o_list.type == :module_end
       # インスタンス変数がある場合はモジュール名と同じクラスを定義
@@ -60,11 +61,11 @@ def print_uml(out, out_list)
         out.push "}"
         # 継承リストの出力
         o_list.inherit_list.each do |ih|
-          out.push "#{o_list.name} -[##{@config["inherit_color"]}]-|> #{ih}"
+          out.push "\"#{o_list.name}\" -[##{@config["inherit_color"]}]-|> \"#{ih}\""
         end
         # compo
         o_list.composition_list.uniq.each do |co|
-          out.push "#{o_list.name} *-[##{@config["composition_color"]}]- #{co}"
+          out.push "\"#{o_list.name}\" *-[##{@config["composition_color"]}]- \"#{co}\""
         end
       end
       out.push "}"
@@ -81,9 +82,8 @@ def create_uml_class(in_dir, _out_file)
   out.push "@startuml"
 
   puts "in_dir = #{in_dir}"
-  main_composition_list = []
-  main_method_list = []
   global_var = []
+  out_list = []
 
   Dir.glob("#{in_dir}/**/*.py") do |f|
     puts f
@@ -93,6 +93,7 @@ def create_uml_class(in_dir, _out_file)
       next
     end
     buf = ""
+    file_name = File.basename(f).split(".")[0]
     Tempfile.create("pylint") do |tmp_file|
       # FileUtils.cp(f, tmp_file.path)
       kernel = Facter.value(:kernel)
@@ -118,12 +119,15 @@ def create_uml_class(in_dir, _out_file)
       end
     end
 
-    out_list = []
     cstruct_list = []
     def_list = []
     block_count = 0
     method_type = :public
     class_name = ""
+    file_struct_list = []
+    file_struct_list.push CStruct.new(:class_start, file_name, file_name + ".global", block_count, [], [], [], [])
+    file_struct_list.push CStruct.new(:class_end, file_name, file_name + ".global", block_count, [], [], [], [])
+
     # ソースを解析
     buf.each_line do |line|
       next if line =~ /^[\r\n]*$/ # 空行は対象外
@@ -158,10 +162,11 @@ def create_uml_class(in_dir, _out_file)
         work = line.gsub(/class\s/, "")
         class_name = work.split("\(")[0].to_s.gsub(/:/, "")
         base_name = work.match(/\(.*\)/).to_s.gsub(/[()]/, "")
+        class_name = "#{file_name}.#{class_name}"
         puts "class_name=#{class_name}"
         puts "base_name=#{base_name}"
-        out_list.push CStruct.new(:class_start, class_name, block_count, [], [], [], [])
-        cstruct_list.push CStruct.new(:class_end, class_name, block_count, [], [], [], [])
+        out_list.push CStruct.new(:class_start, file_name, class_name, block_count, [], [], [], [])
+        cstruct_list.push CStruct.new(:class_end, file_name, class_name, block_count, [], [], [], [])
         # pp line if class_name == ""
         if base_name != ""
           if base_name =~ /,/
@@ -206,9 +211,10 @@ def create_uml_class(in_dir, _out_file)
             method_list.push "# #{method}"
           end
         else
-          main_method_list.push "+ #{method}"
+          method_list = file_struct_list[-1].method_list
+          method_list.push "+ #{method}"
         end
-        def_list.push CStruct.new(:method_start, method, block_count, [], [], [], [])
+        def_list.push CStruct.new(:method_start, file_name, method, block_count, [], [], [], [])
       end
 
       # composition_list
@@ -216,21 +222,21 @@ def create_uml_class(in_dir, _out_file)
       line.match(/\s[A-Z]([a-zA-Z]+)\.[a-z]/) do |m|
         # pp m
         puts "match #{line}"
-        c_name = m.to_s.split(".")[0]
+        c_name = m.to_s.split(".")[0].gsub(/ /, "")
         if cstruct_list.size != 0
           cstruct_list[-1].composition_list.push c_name
         else
-          main_composition_list.push "main *-[##{@config["composition_color"]}]- #{c_name}"
+          file_struct_list[-1].composition_list.push c_name
         end
       end
 
       # クラスの初期化箇所
       line.match(/\s[A-Z][A-Za-z]+\(/) do |m|
-        c_name = m.to_s.gsub(/\(/, "")
+        c_name = m.to_s.gsub(/\(/, "").gsub(/ /, "")
         if cstruct_list.size != 0
           cstruct_list[-1].composition_list.push c_name
         else
-          main_composition_list.push "main *-[##{@config["composition_color"]}]- #{c_name}"
+          file_struct_list[-1].composition_list.push c_name
         end
       end
 
@@ -269,7 +275,7 @@ def create_uml_class(in_dir, _out_file)
       # 外部変数
       if line =~ /^\s*[a-z0-9_]+\s+=/ and cstruct_list.size == 0 and def_list.size == 0
         line.match(/\$*[a-zA-Z0-9_]+/) do |m|
-          global_var.push "+ #{m}"
+          file_struct_list[-1].var_list.push "+ #{m}"
         end
       end
     end
@@ -283,28 +289,32 @@ def create_uml_class(in_dir, _out_file)
         out_list.push cstruct_list[-1]
         cstruct_list.slice!(-1) # 最後の要素を削除
       end
-    end
-
-    # UMLの出力
-    out = print_uml(out, out_list)
-  end
-
-  if main_method_list.size != 0 or
-     main_composition_list.size != 0 or
-     main_method_list.size != 0
-    out.push "class main {"
-    main_method_list.each do |mml|
-      out.push mml
-    end
-    # グローバル変数の出力
-    global_var.uniq.each do |gv|
-      out.push gv
-    end
-    out.push "}"
-    main_composition_list.uniq.each do |mcl|
-      out.push mcl
+      file_struct_list.each do |fs|
+        out_list.push fs
+      end
     end
   end
+
+  # 継承リストとコンポジションリストのチュエック
+  out_list.each_index do |i|
+    out_list[i].composition_list.each_index do |j|
+      compo_name = out_list[i].composition_list[j]
+      out_list.select { |a| a.name.split(".")[-1] == compo_name }.each do |m|
+        puts "m=#{m.name}"
+        out_list[i].composition_list[j] = m.name
+      end
+    end
+    out_list[i].inherit_list.each_index do |j|
+      inherit_name = out_list[i].inherit_list[j]
+      out_list.select { |a| a.name.split(".")[-1] == inherit_name }.each do |m|
+        puts "m=#{m.name}"
+        out_list[i].inherit_list[j] = m.name
+      end
+    end
+  end
+
+  # UMLの出力
+  out = print_uml(out, out_list)
 
   out.push "@enduml"
   out.join("\n")
