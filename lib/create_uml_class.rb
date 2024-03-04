@@ -84,6 +84,7 @@ def create_uml_class(in_dir, _out_file)
   puts "in_dir = #{in_dir}"
   global_var = []
   out_list = []
+  def_list = []
 
   Dir.glob("#{in_dir}/**/*.py") do |f|
     puts f
@@ -120,13 +121,13 @@ def create_uml_class(in_dir, _out_file)
     end
 
     cstruct_list = []
-    def_list = []
     block_count = 0
     method_type = :public
     class_name = ""
     file_struct_list = []
     file_struct_list.push CStruct.new(:class_start, file_name, file_name + ".global", block_count, [], [], [], [])
     file_struct_list.push CStruct.new(:class_end, file_name, file_name + ".global", block_count, [], [], [], [])
+    is_def = false
 
     # ソースを解析
     buf.each_line do |line|
@@ -135,18 +136,18 @@ def create_uml_class(in_dir, _out_file)
       line.chomp!
       # ブロックの開始/終了
       indent_num = line.match(/^ +/).to_s.size / 4
-      # puts "block_count=#{indent_num} #{line}"
+      puts "block_count=#{indent_num} cstruct_size=#{cstruct_list.size} is_def=#{is_def} #{line}"
       if block_count == indent_num
         # 変化なし
       elsif block_count > indent_num
         # ブロックの終了
         block_count = indent_num
         # 関数の終了
-        if def_list.size != 0 and def_list[-1].block_count == block_count
-          def_list.slice!(-1) # 最後の要素を削除
+        if is_def == true and def_list[-1].block_count >= block_count
+          is_def = false
         end
         # クラスの終了
-        if cstruct_list.size != 0 && cstruct_list[-1].block_count == block_count # block_countが一致
+        if cstruct_list.size != 0 && cstruct_list[-1].block_count >= block_count # block_countが一致
           puts "end of #{cstruct_list[-1].name}"
           out_list.push cstruct_list[-1]
           cstruct_list.slice!(-1) # 最後の要素を削除
@@ -215,14 +216,14 @@ def create_uml_class(in_dir, _out_file)
           method_list.push "+ #{method}"
         end
         def_list.push CStruct.new(:method_start, file_name, method, block_count, [], [], [], [])
+        is_def = true
       end
 
       # composition_list
       # クラスの呼び出し箇所
-      line.match(/\s[A-Z]([a-zA-Z]+)\.[a-z]/) do |m|
-        # pp m
-        puts "match #{line}"
+      line.match(/\s([A-Z][a-zA-Z]+)\.[a-z]/) do |m|
         c_name = m.to_s.split(".")[0].gsub(/ /, "")
+        puts "compo c_name=#{c_name}"
         if cstruct_list.size != 0
           cstruct_list[-1].composition_list.push c_name
         else
@@ -233,6 +234,7 @@ def create_uml_class(in_dir, _out_file)
       # クラスの初期化箇所
       line.match(/\s[A-Z][A-Za-z]+\(/) do |m|
         c_name = m.to_s.gsub(/\(/, "").gsub(/ /, "")
+        puts "compo c_name=#{c_name}"
         if cstruct_list.size != 0
           cstruct_list[-1].composition_list.push c_name
         else
@@ -241,8 +243,8 @@ def create_uml_class(in_dir, _out_file)
       end
 
       # インスタンス変数
-      if line =~ /^\s*self\.[a-z0-9_]+\s+=/ and cstruct_list.size != 0
-        line.match(/self\.[a-z0-9_]+/) do |m|
+      if line =~ /^\s*self\.[a-zA-Z0-9_]+\s+=/ and cstruct_list.size != 0
+        line.match(/self\.[a-zA-Z0-9_]+/) do |m|
           instance_var = cstruct_list[-1].var_list
           val = m.to_s.gsub(/self\./, "")
           case method_type
@@ -257,23 +259,16 @@ def create_uml_class(in_dir, _out_file)
       end
 
       # クラス変数
-      if line =~ /^\s*[a-z0-9_]+\s+=/ and cstruct_list.size != 0 and def_list.size == 0
-        line.match(/[a-z0-9_]+/) do |m|
+      if line =~ /^\s*[a-zA-Z0-9_]+\s+=/ and cstruct_list.size != 0 and is_def == false
+        line.match(/[a-zA-Z0-9_]+/) do |m|
           instance_var = cstruct_list[-1].var_list
           val = m.to_s
-          case method_type
-          when :public
-            instance_var.push "+ #{val}"
-          when :private
-            instance_var.push "- #{val}"
-          when :protected
-            instance_var.push "# #{val}"
-          end
+          instance_var.push "- #{val}"
         end
       end
 
       # 外部変数
-      if line =~ /^\s*[a-z0-9_]+\s+=/ and cstruct_list.size == 0 and def_list.size == 0
+      if line =~ /^\s*[a-zA-Z0-9_]+\s+=/ and cstruct_list.size == 0 and is_def == false
         line.match(/\$*[a-zA-Z0-9_]+/) do |m|
           file_struct_list[-1].var_list.push "+ #{m}"
         end
@@ -302,6 +297,13 @@ def create_uml_class(in_dir, _out_file)
       out_list.select { |a| a.name.split(".")[-1] == compo_name }.each do |m|
         puts "m=#{m.name}"
         out_list[i].composition_list[j] = m.name
+      end
+      def_list.each do |def_struct|
+        #puts "#{compo_name} == #{def_struct.name.split("(")[0]}"
+        if compo_name == def_struct.name.split("(")[0]
+          puts "match_def #{compo_name} == #{def_struct.name.split("(")[0]}"
+          out_list[i].composition_list.delete_at(j)
+        end
       end
     end
     out_list[i].inherit_list.each_index do |j|
