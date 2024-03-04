@@ -10,7 +10,7 @@
     },
     {
       "name": "formatter_path",
-      "value": "/home/kuwayama/tool/python/del_comment.py",
+      "value": "../bin/del_comment.py",
       "type": "input",
       "select": "",
       "description": "pylintのパス"
