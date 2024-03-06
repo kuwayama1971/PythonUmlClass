@@ -59,6 +59,7 @@ class WsServer < Sinatra::Base
               argv = msg.gsub(/^exec:/, "")
               exec_thread = Thread.new {
                 begin
+                  ws_send("app_start:running")
                   $app.start(argv.split(",")) do |out|
                     ws_send(out)
                   end

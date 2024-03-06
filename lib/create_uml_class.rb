@@ -145,18 +145,25 @@ def create_uml_class(in_dir, _out_file)
         # 関数の終了
         if is_def == true and def_list[-1].block_count >= block_count
           is_def = false
+          method_type = :public
         end
         # クラスの終了
         if cstruct_list.size != 0 && cstruct_list[-1].block_count >= block_count # block_countが一致
           puts "end of #{cstruct_list[-1].name}"
           out_list.push cstruct_list[-1]
           cstruct_list.slice!(-1) # 最後の要素を削除
+          method_type = :public
         end
       else
         # ブロックの開始
         block_count = indent_num
       end
       #puts "block_count=#{indent_num} class_count=#{cstruct_list.size} def_count=#{def_list.size} #{line}"
+
+      # method_type
+      if line =~ /@staticmethod/
+        method_type = :private
+      end
 
       # クラスの開始
       if line =~ /^\s*class.*:/
