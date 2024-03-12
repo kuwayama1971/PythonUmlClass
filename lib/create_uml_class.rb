@@ -85,13 +85,20 @@ def create_uml_class(in_dir, _out_file)
   global_var = []
   out_list = []
   def_list = []
+  import_list = []
+
+  Dir.glob("#{in_dir}/**/*.py") do |f|
+    import_list.push File.basename(f).split(".")[0]
+  end
 
   Dir.glob("#{in_dir}/**/*.py") do |f|
     puts f
     puts @config["exclude_path"]
-    if f =~ Regexp.new(@config["exclude_path"])
-      puts "skip #{f}"
-      next
+    if @config["exclude_path"] != ""
+      if f =~ Regexp.new(@config["exclude_path"])
+        puts "skip #{f}"
+        next
+      end
     end
     buf = ""
     file_name = File.basename(f).split(".")[0]
@@ -163,6 +170,18 @@ def create_uml_class(in_dir, _out_file)
       # method_type
       if line =~ /@staticmethod/
         method_type = :private
+      end
+
+      # import
+      line.match(/import \S+/) do |m|
+        import_name = m.to_s.gsub(/import /, "")
+        if 0 != import_list.select { |im| im == import_name }.size and file_name != import_name
+          if cstruct_list.size != 0
+            cstruct_list[-1].composition_list.push import_name
+          else
+            file_struct_list[-1].composition_list.push import_name
+          end
+        end
       end
 
       # クラスの開始
@@ -239,8 +258,8 @@ def create_uml_class(in_dir, _out_file)
       end
 
       # クラスの初期化箇所
-      line.match(/\s[A-Z][A-Za-z]+\(/) do |m|
-        c_name = m.to_s.gsub(/\(/, "").gsub(/ /, "")
+      line.match(/[\s\.][A-Z][A-Za-z]+\(/) do |m|
+        c_name = m.to_s.gsub(/\(/, "").gsub(/[\s\.]/, "")
         puts "compo c_name=#{c_name}"
         if cstruct_list.size != 0
           cstruct_list[-1].composition_list.push c_name
@@ -300,12 +319,14 @@ def create_uml_class(in_dir, _out_file)
   # 継承リストとコンポジションリストのチュエック
   out_list.each_index do |i|
     out_list[i].composition_list.each_index do |j|
+      # compo_nameがfile_name.class_nameに変更可能かチェック
       compo_name = out_list[i].composition_list[j]
       out_list.select { |a| a.name.split(".")[-1] == compo_name }.each do |m|
         puts "m=#{m.name}"
         out_list[i].composition_list[j] = m.name
       end
       def_list.each do |def_struct|
+        # comp_nameが自分で定義した関数名の場合は削除
         #puts "#{compo_name} == #{def_struct.name.split("(")[0]}"
         if compo_name == def_struct.name.split("(")[0]
           puts "match_def #{compo_name} == #{def_struct.name.split("(")[0]}"
@@ -314,6 +335,7 @@ def create_uml_class(in_dir, _out_file)
       end
     end
     out_list[i].inherit_list.each_index do |j|
+      # compo_nameがfile_name.class_nameに変更可能かチェック
       inherit_name = out_list[i].inherit_list[j]
       out_list.select { |a| a.name.split(".")[-1] == inherit_name }.each do |m|
         puts "m=#{m.name}"

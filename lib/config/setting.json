@@ -38,7 +38,7 @@
     },
     {
       "name": "exclude_path",
-      "value": "(/test./)",
+      "value": "",
       "type": "input",
       "select": "",
       "description": "除外するパス（正規表現）"
