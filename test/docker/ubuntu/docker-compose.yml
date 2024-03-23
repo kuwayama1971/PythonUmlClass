@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  container1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./work:/work
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+    network_mode: "host"      
+    container_name: ubuntu
+    user: 1000:1000
+    environment:
+      DISPLAY: $DISPLAY    
+    command: sleep infinity
+
+
