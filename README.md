@@ -7,6 +7,12 @@ Create a python class diagram
     $ apt install -y pip
     $ pip install astor
 
+    install google-chrome
+    $ echo "deb http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list
+    $ wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+    $ apt update
+    $ apt -y install google-chrome-stable
+
 ## Installation
 
 Install the gem and add to the application's Gemfile by executing:
@@ -21,6 +27,7 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
     $ start_python_uml_class.rb
 
+![class](img/class.png)
 
 ## Development
 
