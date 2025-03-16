@@ -7,7 +7,7 @@ require "json"
 
 # tmpdirディレクトリにコピー
 dir = File.dirname(File.expand_path(__FILE__ + "/../"))
-home_dir = ENV["HOME"] + "/" + dir.split("/")[-1].gsub(/-[0-9\.-]+/,"")
+home_dir = ENV["HOME"] + "/" + dir.split("/")[-1].gsub(/-[0-9\.-]+/, "")
 puts "home_dir=#{home_dir}"
 Dir.mktmpdir { |tmpdir|
   outdir = tmpdir + "/" + dir.split("/")[-1]
@@ -17,7 +17,7 @@ Dir.mktmpdir { |tmpdir|
   Dir.glob("#{dir}/lib/*") do |f|
     if f =~ /config$/
       # configはhomeにコピー
-      if !File.exists? "#{home_dir}/config"
+      if !File.exist? "#{home_dir}/config"
         puts "#{f} => #{home_dir}/"
         FileUtils.cp_r f, "#{home_dir}/"
       end
@@ -27,8 +27,8 @@ Dir.mktmpdir { |tmpdir|
     end
   end
   begin
-  json = JSON.parse(File.read("#{home_dir}/config/setting.json"))
-  old_version = json["version"]
+    json = JSON.parse(File.read("#{home_dir}/config/setting.json"))
+    old_version = json["version"]
   rescue
     old_version = ""
   end
