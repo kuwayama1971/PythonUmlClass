@@ -38,7 +38,7 @@
     },
     {
       "name": "exclude_path",
-      "value": "",
+      "value": "/venv/",
       "type": "input",
       "select": "",
       "description": "除外するパス（正規表現）"
