@@ -30,7 +30,11 @@ def print_uml(out, out_list)
       out.push "namespace \"#{o_list.name}\" {"
     elsif o_list.type == :class_end
       pp o_list if o_list.name == ""
-      out.push "class \"#{o_list.name}\" {"
+      if @config["color_class_name"].to_s != "" && o_list.name.match?(/#{@config["color_class_name"]}/)
+        out.push "class \"#{o_list.name}\" ##{@config["class_color"]} {"
+      else
+        out.push "class \"#{o_list.name}\" {"
+      end
       # インスタンス変数の出力
       o_list.var_list.uniq.each do |iv|
         out.push iv
@@ -42,11 +46,29 @@ def print_uml(out, out_list)
       out.push "}"
       # 継承リストの出力
       o_list.inherit_list.each do |ih|
-        out.push "\"#{o_list.name}\" -[##{@config["inherit_color"]}]-|> \"#{ih}\""
+        line_color = @config["inherit_color"]
+        if @config["color_class_name"].to_s != ""
+          if ih.match?(/#{@config["color_class_name"]}/)
+            line_color = @config["class_color"]
+            out.push "class \"#{ih}\" ##{@config["class_color"]}"
+          elsif o_list.name.match?(/#{@config["color_class_name"]}/)
+            line_color = @config["class_color"]
+          end
+        end
+        out.push "\"#{o_list.name}\" -[##{line_color}]-|> \"#{ih}\""
       end
       # compo
       o_list.composition_list.uniq.each do |co|
-        out.push "\"#{o_list.name}\" *-[##{@config["composition_color"]}]- \"#{co}\""
+        line_color = @config["composition_color"]
+        if @config["color_class_name"].to_s != ""
+          if co.match?(/#{@config["color_class_name"]}/)
+            line_color = @config["class_color"]
+            out.push "class \"#{co}\" ##{@config["class_color"]}"
+          elsif o_list.name.match?(/#{@config["color_class_name"]}/)
+            line_color = @config["class_color"]
+          end
+        end
+        out.push "\"#{o_list.name}\" *-[##{line_color}]- \"#{co}\""
       end
     elsif o_list.type == :module_end
       # インスタンス変数がある場合はモジュール名と同じクラスを定義
@@ -55,7 +77,11 @@ def print_uml(out, out_list)
          o_list.inherit_list.size != 0 or
          o_list.composition_list.size != 0
         pp o_list if o_list.name == ""
-        out.push "class #{o_list.name} {"
+        if @config["color_class_name"].to_s != "" && o_list.name.match?(/#{@config["color_class_name"]}/)
+          out.push "class #{o_list.name} ##{@config["class_color"]} {"
+        else
+          out.push "class #{o_list.name} {"
+        end
         # インスタンス変数の出力
         o_list.var_list.uniq.each do |iv|
           out.push iv
@@ -67,11 +93,29 @@ def print_uml(out, out_list)
         out.push "}"
         # 継承リストの出力
         o_list.inherit_list.each do |ih|
-          out.push "\"#{o_list.name}\" -[##{@config["inherit_color"]}]-|> \"#{ih}\""
+          line_color = @config["inherit_color"]
+          if @config["color_class_name"].to_s != ""
+            if ih.match?(/#{@config["color_class_name"]}/)
+              line_color = @config["class_color"]
+              out.push "class \"#{ih}\" ##{@config["class_color"]}"
+            elsif o_list.name.match?(/#{@config["color_class_name"]}/)
+              line_color = @config["class_color"]
+            end
+          end
+          out.push "\"#{o_list.name}\" -[##{line_color}]-|> \"#{ih}\""
         end
         # compo
         o_list.composition_list.uniq.each do |co|
-          out.push "\"#{o_list.name}\" *-[##{@config["composition_color"]}]- \"#{co}\""
+          line_color = @config["composition_color"]
+          if @config["color_class_name"].to_s != ""
+            if co.match?(/#{@config["color_class_name"]}/)
+              line_color = @config["class_color"]
+              out.push "class \"#{co}\" ##{@config["class_color"]}"
+            elsif o_list.name.match?(/#{@config["color_class_name"]}/)
+              line_color = @config["class_color"]
+            end
+          end
+          out.push "\"#{o_list.name}\" *-[##{line_color}]- \"#{co}\""
         end
       end
       out.push "}"

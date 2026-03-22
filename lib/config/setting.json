@@ -49,6 +49,20 @@
       "type": "input",
       "select": "",
       "description": "除外するパス（正規表現）"
+    },
+    {
+      "name": "class_color",
+      "value": "LightBlue",
+      "type": "input",
+      "select": "",
+      "description": "特定クラスの色"
+    },
+    {
+      "name": "color_class_name",
+      "value": "(Browser|Model)",
+      "type": "input",
+      "select": "",
+      "description": "色を付けるクラスの正規表現"
     }
   ]
 }

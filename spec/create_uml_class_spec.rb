@@ -37,6 +37,41 @@ RSpec.describe "create_uml_class" do
   end
 
   describe "#create_uml_class" do
+    it "applies color to matched classes and their relationships" do
+      @config["class_color"] = "red"
+      @config["color_class_name"] = "Chat"
+      @config["inherit_color"] = "green"
+      @config["composition_color"] = "blue"
+
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "sample.py"), <<~PYTHON)
+          import ChatUser
+          class ChatRoom(ChatUser):
+              def __init__(self):
+                  self.user = ChatUser()
+        PYTHON
+
+        allow(Facter).to receive(:value).with(:kernel).and_return("linux")
+        allow(self).to receive(:open).and_yield(StringIO.new(""))
+        allow(File).to receive(:binread).and_return(<<~PYTHON)
+          import ChatUser
+          class ChatRoom(ChatUser):
+              def __init__(self):
+                  self.user = ChatUser()
+        PYTHON
+
+        uml = create_uml_class(dir, "out.puml")
+        
+        # Test class color applied to ChatRoom
+        expect(uml).to include("class \"sample.ChatRoom\" #red {")
+        
+        # Test inherit and composition line colors and class colors
+        expect(uml).to include("class \"ChatUser\" #red")
+        expect(uml).to include("\"sample.ChatRoom\" -[#red]-|> \"ChatUser\"")
+        expect(uml).to include("\"sample.ChatRoom\" *-[#red]- \"ChatUser\"")
+      end
+    end
+
     it "parses python files and returns UML string" do
       Dir.mktmpdir do |dir|
         File.write(File.join(dir, "sample.py"), <<~PYTHON)
