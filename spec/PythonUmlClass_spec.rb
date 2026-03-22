@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe PythonUmlClass do
-  it "has a version number" do
-    expect(PythonUmlClass::VERSION).not_to be nil
-  end
+require "python_uml_class/version"
 
-  it "does something useful" do
-    expect(false).to eq(true)
+RSpec.describe "PythonUmlClassVer" do
+  it "has a version number" do
+    expect(PythonUmlClassVer::VERSION).not_to be nil
   end
 end

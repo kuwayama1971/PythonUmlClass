@@ -1,6 +1,8 @@
 # PythonUmlClass
 Create a python class diagram
 
+Read this in other languages: [English](README.md), [日本語](README_JA.md)
+
 ## Setup
     for ubuntu
     $ sudo apt install plantuml
@@ -28,6 +30,42 @@ If bundler is not being used to manage dependencies, install the gem by executin
     $ start_python_uml_class.rb
 
 ![class](img/class.png)
+
+## Testing with Docker
+
+You can use Docker to set up a development and testing environment for Ubuntu 22.04 and 24.04.
+
+1. Move to `test/docker/ubuntu`.
+    ```bash
+    $ cd test/docker/ubuntu
+    ```
+
+2. Build and start the container using docker compose.
+   - For Ubuntu 22.04:
+     ```bash
+     $ docker compose up -d --build
+     ```
+   - For Ubuntu 24.04:
+     ```bash
+     $ docker compose -f docker-compose-24.04.yml up -d --build
+     ```
+
+3. Log in to the container to run tests or the application. (The source code is mounted at `/work` inside the container)
+   - For Ubuntu 22.04:
+     ```bash
+     $ docker exec -it ubuntu bash
+     ```
+   - For Ubuntu 24.04:
+     ```bash
+     $ docker exec -it ubuntu-24.04 bash
+     ```
+
+4. Run tests inside the container.
+    ```bash
+    $ cd /work
+    $ bundle install
+    $ bundle exec rspec
+    ```
 
 ## Development
 

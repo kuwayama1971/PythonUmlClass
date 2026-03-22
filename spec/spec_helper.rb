@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "python_uml_class"
+# require "python_uml_class"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

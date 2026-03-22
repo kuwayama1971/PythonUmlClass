@@ -9,6 +9,13 @@
       "description": "PlantUMLコマンド"
     },
     {
+      "name": "python_path",
+      "value": " ~/.python3_venv/bin/python3",
+      "type": "input",
+      "select": "",
+      "description": "pythonのパス"
+    },
+    {
       "name": "formatter_path",
       "value": "./del_comment.py",
       "type": "input",

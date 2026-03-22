@@ -10,6 +10,12 @@ CStruct = Struct.new(:type,
                      :inherit_list,
                      :composition_list)
 
+def get_python_path
+  return @config["python_path"] if @config["python_path"].to_s != ""
+
+  "python"
+end
+
 def get_formatter_path
   return @config["formatter_path"] if @config["formatter_path"].to_s != ""
 
@@ -106,7 +112,7 @@ def create_uml_class(in_dir, _out_file)
       # FileUtils.cp(f, tmp_file.path)
       kernel = Facter.value(:kernel)
       if kernel == "windows"
-        open("|#{get_formatter_path} #{f} > #{tmp_file.path}") do |ff|
+        open("|#{get_python_path} #{get_formatter_path} #{f} > #{tmp_file.path}") do |ff|
           if ff.read.to_s != ""
             puts "pylint error #{ff}"
             return
@@ -115,8 +121,8 @@ def create_uml_class(in_dir, _out_file)
           end
         end
       else
-        open("|#{get_formatter_path} #{f} > #{tmp_file.path}") do |ff|
-          puts "|#{get_formatter_path} #{f} > #{tmp_file.path}"
+        open("|#{get_python_path} #{get_formatter_path} #{f} > #{tmp_file.path}") do |ff|
+          puts "|#{get_python_path} #{get_formatter_path} #{f} > #{tmp_file.path}"
           if ff.read.to_s != ""
             puts "pylint error #{ff}"
             return

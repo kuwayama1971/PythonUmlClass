@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    python_uml_class (0.1.0)
+    python_uml_class (0.2.0)
       browser_app_base (~> 0.1)
       facter (~> 4.2)
 
