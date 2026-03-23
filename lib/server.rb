@@ -44,9 +44,21 @@ class Search < Sinatra::Base
     end
     path.gsub!(/[\/]+/, "/")
     puts path
+    
+    base_dir = path.gsub(/\*$/, "")
+    parent_dir = File.expand_path("..", base_dir)
+    
+    if File.directory?(base_dir) && parent_dir != File.expand_path(base_dir)
+      data = {}
+      data["label"] = "../"
+      data["value"] = parent_dir
+      res.push data
+    end
+
     Dir.glob(path, File::FNM_DOTMATCH).each do |file|
       data = {}
       next if File.basename(file) == "."
+      next if File.basename(file) == ".."
       next if kind == "dir" and !File.directory?(file)
       data["label"] = File.basename(file)
       data["label"] += "/" if (File.directory?(file))

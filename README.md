@@ -31,6 +31,17 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ![class](img/class.png)
 
+## Release Notes
+
+### v0.2.1
+- **Feature**: Added `python_path` setting in `setting.json` to allow specifying a custom Python path when executing the formatter script.
+- **Feature**: Added `class_color` and `color_class_name` settings in `setting.json`. Classes matching the `color_class_name` regular expression will be displayed with the specified `class_color` along with their inheritance (`-|>`) and composition (`*--`) relationship lines.
+- **Enhancement**: Improved the extraction of class compositions to properly detect class instantiations inside parentheses (e.g., `chat_history.append(HumanMessage(content=...))`).
+- **Enhancement**: Modified class extraction to output fully qualified module names (e.g., `langchain_core.messages.HumanMessage`) when an alias or module path is specified via `from module import Class` or `import module as alias`.
+- **Enhancement**: Filtered the extracted objects to include only the classes explicitly imported or defined locally within the parsed file.
+- **Bug Fix**: Addressed an issue where variables defined with `class_` prefix (like `class_var`) or variables without assignments but containing type hints (like `global_var: int`) were incorrectly identified.
+- **Bug Fix**: Fixed a bug where multi-line strings (`"""` or `'''`) or empty lines containing whitespace only within class functions caused indentation miscalculations, leading to local variables being improperly recognized as class or global variables.
+
 ## Testing with Docker
 
 You can use Docker to set up a development and testing environment for Ubuntu 22.04 and 24.04.
