@@ -99,5 +99,61 @@ RSpec.describe "create_uml_class" do
         expect(uml).to include("@enduml")
       end
     end
+
+    it "recognizes inline class initializations as composition" do
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "sample.py"), <<~PYTHON)
+          import HumanMessage
+          import AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        allow(Facter).to receive(:value).with(:kernel).and_return("linux")
+        allow(self).to receive(:open).and_yield(StringIO.new(""))
+        allow(File).to receive(:binread).and_return(<<~PYTHON)
+          import HumanMessage
+          import AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        uml = create_uml_class(dir, "out.puml")
+        
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"HumanMessage\"")
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"AIMessage\"")
+      end
+    end
+
+    it "resolves fully qualified names from imports" do
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "sample.py"), <<~PYTHON)
+          from langchain_core.messages import HumanMessage, AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        allow(Facter).to receive(:value).with(:kernel).and_return("linux")
+        allow(self).to receive(:open).and_yield(StringIO.new(""))
+        allow(File).to receive(:binread).and_return(<<~PYTHON)
+          from langchain_core.messages import HumanMessage, AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        uml = create_uml_class(dir, "out.puml")
+        
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"langchain_core.messages.HumanMessage\"")
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"langchain_core.messages.AIMessage\"")
+      end
+    end
   end
 end

@@ -185,26 +185,68 @@ def create_uml_class(in_dir, _out_file)
     file_struct_list.push CStruct.new(:class_start, file_name, file_name + ".global", block_count, [], [], [], [])
     file_struct_list.push CStruct.new(:class_end, file_name, file_name + ".global", block_count, [], [], [], [])
     is_def = false
-    local_imports = []
+    local_imports = {}
+    local_classes = []
+
+    in_multiline_string = false
+    multiline_char = nil
+
+    buf.each_line do |line|
+      if line =~ /^\s*class\s+[a-zA-Z0-9_]+/
+        work = line.gsub(/class\s/, "")
+        c_name = work.split("\(")[0].to_s.gsub(/:/, "").strip
+        local_classes.push(c_name)
+      end
+    end
 
     # ソースを解析
     buf.each_line do |line|
-      next if line =~ /^[\r\n]*$/ # 空行は対象外
+      next if line =~ /^\s*$/ # 空行は対象外
+      next if line =~ /^\s*#/ # コメント行は対象外
+
+      clean_line = line.gsub(/\\"/, '').gsub(/\\'/, '')
+      quotes3_double = clean_line.scan(/"""/).size
+      quotes3_single = clean_line.scan(/'''/).size
+
+      if in_multiline_string
+        if multiline_char == '"""' && quotes3_double.odd?
+          in_multiline_string = false
+        elsif multiline_char == "'''" && quotes3_single.odd?
+          in_multiline_string = false
+        end
+        next
+      else
+        if quotes3_double.odd?
+          in_multiline_string = true
+          multiline_char = '"""'
+        elsif quotes3_single.odd?
+          in_multiline_string = true
+          multiline_char = "'''"
+        end
+      end
 
       if line =~ /^\s*import\s/
         line.gsub(/import\s/, "").split(",").each do |imp|
           if imp =~ / as /
-            local_imports.push imp.split(" as ")[1].strip
+            short_name = imp.split(" as ")[1].strip
+            full_name = imp.split(" as ")[0].strip
+            local_imports[short_name] = full_name
           else
-            local_imports.push imp.strip.split(".")[0]
+            short_name = imp.strip.split(".")[0]
+            full_name = imp.strip
+            local_imports[short_name] = full_name
           end
         end
       elsif line =~ /^\s*from\s/
+        from_module = line.match(/^\s*from\s+([^\s]+)/)[1]
         line.gsub(/^.*import\s/, "").split(",").each do |imp|
           if imp =~ / as /
-            local_imports.push imp.split(" as ")[1].strip
+            short_name = imp.split(" as ")[1].strip
+            orig_name = imp.split(" as ")[0].strip
+            local_imports[short_name] = "#{from_module}.#{orig_name}"
           else
-            local_imports.push imp.strip
+            short_name = imp.strip
+            local_imports[short_name] = "#{from_module}.#{short_name}"
           end
         end
       end
@@ -254,7 +296,7 @@ def create_uml_class(in_dir, _out_file)
       end
 
       # クラスの開始
-      if line =~ /^\s*class.*:/
+      if line =~ /^\s*class\s+[a-zA-Z0-9_]+/
         work = line.gsub(/class\s/, "")
         class_name = work.split("\(")[0].to_s.gsub(/:/, "")
         base_name = work.match(/\(.*\)/).to_s.gsub(/[()]/, "")
@@ -267,10 +309,13 @@ def create_uml_class(in_dir, _out_file)
         if base_name != ""
           if base_name =~ /,/
             base_name.split(",").each do |name|
-              cstruct_list[-1].inherit_list.push name
+              name = name.strip
+              resolved_name = local_imports[name] || name
+              cstruct_list[-1].inherit_list.push resolved_name
             end
           else
-            cstruct_list[-1].inherit_list.push base_name
+            resolved_name = local_imports[base_name] || base_name
+            cstruct_list[-1].inherit_list.push resolved_name
           end
         end
         next
@@ -322,22 +367,28 @@ def create_uml_class(in_dir, _out_file)
 
         # importされているものだけを対象とする
         if local_imports.include?(c_name)
+          resolved_name = local_imports[c_name] || c_name
           if cstruct_list.size != 0
-            cstruct_list[-1].composition_list.push c_name
+            cstruct_list[-1].composition_list.push resolved_name
           else
-            file_struct_list[-1].composition_list.push c_name
+            file_struct_list[-1].composition_list.push resolved_name
           end
         end
       end
 
       # クラスの初期化箇所
-      line.match(/[\s\.][A-Z][A-Za-z0-9]+\(/) do |m|
-        c_name = m.to_s.gsub(/\(/, "").gsub(/[\s\.]/, "")
+      line.scan(/\b([A-Z][A-Za-z0-9_]*)\(/).each do |m|
+        c_name = m[0]
         puts "compo c_name=#{c_name}"
-        if cstruct_list.size != 0
-          cstruct_list[-1].composition_list.push c_name
-        else
-          file_struct_list[-1].composition_list.push c_name
+        
+        # 自分で定義したものとimportされているものだけを対象とする
+        if local_imports.include?(c_name) || local_classes.include?(c_name)
+          resolved_name = local_imports[c_name] || c_name
+          if cstruct_list.size != 0
+            cstruct_list[-1].composition_list.push resolved_name
+          else
+            file_struct_list[-1].composition_list.push resolved_name
+          end
         end
       end
 
@@ -357,19 +408,22 @@ def create_uml_class(in_dir, _out_file)
         end
       end
 
+      # クラス変数・外部変数（グローバル変数）の正規表現
+      var_regex = /^\s*(?!(?:def|class|if|elif|else|while|for|try|except|finally|with|pass|return|yield|import|from|global|nonlocal|assert|del|raise|break|continue)\b)([a-zA-Z0-9_]+)\s*(?::\s*[^=]+|=(?!=))/
+
       # クラス変数
-      if line =~ /^\s*[a-zA-Z0-9_]+(\s*:\s*[^=]+)?\s*=/ and cstruct_list.size != 0 and is_def == false
-        line.match(/[a-zA-Z0-9_]+/) do |m|
+      if line =~ var_regex and cstruct_list.size != 0 and is_def == false
+        line.match(var_regex) do |m|
           instance_var = cstruct_list[-1].var_list
-          val = m.to_s
+          val = m[1].to_s
           instance_var.push "- #{val}"
         end
       end
 
       # 外部変数
-      if line =~ /^\s*[a-zA-Z0-9_]+(\s*:\s*[^=]+)?\s*=/ and cstruct_list.size == 0 and is_def == false
-        line.match(/\$*[a-zA-Z0-9_]+/) do |m|
-          file_struct_list[-1].var_list.push "+ #{m}"
+      if line =~ var_regex and cstruct_list.size == 0 and is_def == false
+        line.match(var_regex) do |m|
+          file_struct_list[-1].var_list.push "+ #{m[1].to_s}"
         end
       end
     end

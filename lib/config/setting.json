@@ -59,7 +59,7 @@
     },
     {
       "name": "color_class_name",
-      "value": "(Browser|Model)",
+      "value": "(langchain)",
       "type": "input",
       "select": "",
       "description": "色を付けるクラスの正規表現"
