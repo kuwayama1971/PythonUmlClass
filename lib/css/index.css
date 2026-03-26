@@ -29,6 +29,12 @@ hr {
     overflow: auto;
 }
 
+.outarea img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
 .inarea {
     border: thin solid #000000;
     margin: 5px;

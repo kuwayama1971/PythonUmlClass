@@ -36,6 +36,9 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "browser_app_base", "~> 0.1"
   spec.add_dependency "facter", "~> 4.2"
+  spec.add_dependency "rack", ">= 3.0"
+  spec.add_dependency "rackup"
+  spec.add_dependency "webrick"
   #spec.add_dependency "rufo", "~> 0.1"
 
   # For more information and examples about making a new gem, check out our

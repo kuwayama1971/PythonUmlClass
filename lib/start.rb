@@ -2,8 +2,28 @@
 # -*- coding: utf-8 -*-
 $LOAD_PATH << File.dirname(File.expand_path(__FILE__))
 
+require 'rubygems'
+require 'rubygems'
+
+begin
+  require 'bundler/setup'
+rescue LoadError
+  gem 'rack'
+  gem 'rackup'
+end
+
+require 'rack'
+begin
+  require 'rackup'
+  require 'rackup/server'
+rescue LoadError
+  # Fallback to older rack
+  require 'rack/server'
+  Object.const_set("Rackup", Rack) unless defined?(Rackup)
+end
+
+require 'bundler/setup'
 require "socket"
-require "rack"
 require "daemons"
 require "fileutils"
 require "kconv"
@@ -75,17 +95,17 @@ end
 port = get_unused_port
 puts "port=#{port}"
 
-# config.ruの編集
-buf = File.binread("config.ru").toutf8
-buf.gsub!(/port [0-9]+/, "port #{port}")
-File.binwrite("config.ru", buf)
+# config.ruの編集は不要 (Rackup/Server optionsでポートを指定する)
 
 # main.jsの編集
 buf = File.binread("js/main.js").toutf8
 buf.gsub!(/localhost:[0-9]+\//, "localhost:#{port}/")
+buf.gsub!(/localhost:[0-9]+\/wsserver/, "localhost:#{port}/wsserver")
+# ws://localhost:12345/wsserver のようなパターンの置換をより確実に行う
+buf.gsub!(/ws:\/\/localhost:[0-9]+\/wsserver/, "ws://localhost:#{port}/wsserver")
 File.binwrite("js/main.js", buf)
 
-# index.htaの編集
+# html/index.htmlの編集
 buf = File.binread("html/index.html").toutf8
 buf.gsub!(/localhost:[0-9]+\//, "localhost:#{port}/")
 File.binwrite("html/index.html", buf)
@@ -122,7 +142,8 @@ begin
   }
 
   # start web server
-  Rack::Server.start
+  server_class = defined?(Rackup::Server) ? Rackup::Server : Rack::Server
+  server_class.start(:Port => port, :config => "config.ru", :server => 'thin')
 rescue
   puts $!
   puts $@

@@ -1,10 +1,14 @@
 # PythonUmlClass
 Create a python class diagram
 
+Read this in other languages: [English](README.md), [日本語](README_JA.md)
+
 ## Setup
     for ubuntu
     $ sudo apt install plantuml
-    $ apt install -y pip
+    $ sudo apt install python3.12-venv
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
     $ pip install astor
 
     install google-chrome
@@ -28,6 +32,59 @@ If bundler is not being used to manage dependencies, install the gem by executin
     $ start_python_uml_class.rb
 
 ![class](img/class.png)
+
+## Release Notes
+
+### v0.2.1
+- **Feature**: Added `python_path` setting in `setting.json` to allow specifying a custom Python path when executing the formatter script.
+- **Feature**: Added `class_color` and `color_class_name` settings in `setting.json`. Classes matching the `color_class_name` regular expression will be displayed with the specified `class_color` along with their inheritance (`-|>`) and composition (`*--`) relationship lines.
+- **Enhancement**: Improved the extraction of class compositions to properly detect class instantiations inside parentheses (e.g., `chat_history.append(HumanMessage(content=...))`).
+- **Enhancement**: Modified class extraction to output fully qualified module names (e.g., `langchain_core.messages.HumanMessage`) when an alias or module path is specified via `from module import Class` or `import module as alias`.
+- **Enhancement**: Filtered the extracted objects to include only the classes explicitly imported or defined locally within the parsed file.
+- **Enhancement**: Updated `README.md` to include instructions for setting up a Python virtual environment (`python3 -m venv .venv`).
+- **Bug Fix**: Addressed an issue where variables defined with `class_` prefix (like `class_var`) or variables without assignments but containing type hints (like `global_var: int`) were incorrectly identified.
+- **Bug Fix**: Fixed a bug where multi-line strings (`"""` or `'''`) or empty lines containing whitespace only within class functions caused indentation miscalculations, leading to local variables being improperly recognized as class or global variables.
+- **Bug Fix**: Fixed `uninitialized constant Rack::Server` error and improved Rack 3 support by unifying the server usage to `Rackup::Server` while maintaining backward compatibility with `Rack::Server` for older Rack 2 environments.
+- **Bug Fix**: Fixed an issue where the WebSocket connection URL in `main.js` was missing or updating to the wrong port.
+- **Bug Fix**: Resolved `SinatraWebsocket::Error::ConfigurationError` by explicitly passing `:server => 'thin'` to ensure websockets work smoothly in async environments.
+- **Bug Fix**: Handled an `Encoding::CompatibilityError` where incoming WebSocket messages from the browser were incorrectly interpreted as `US-ASCII`. They are now correctly parsed as `UTF-8`.
+- **Bug Fix**: Fixed a crash `no implicit conversion of nil into String` in `create_uml_class.rb` which occurred when `@config` was `nil`.
+
+## Testing with Docker
+
+You can use Docker to set up a development and testing environment for Ubuntu 22.04 and 24.04.
+
+1. Move to `test/docker/ubuntu`.
+    ```bash
+    $ cd test/docker/ubuntu
+    ```
+
+2. Build and start the container using docker compose.
+   - For Ubuntu 22.04:
+     ```bash
+     $ docker compose up -d --build
+     ```
+   - For Ubuntu 24.04:
+     ```bash
+     $ docker compose -f docker-compose-24.04.yml up -d --build
+     ```
+
+3. Log in to the container to run tests or the application. (The source code is mounted at `/work` inside the container)
+   - For Ubuntu 22.04:
+     ```bash
+     $ docker exec -it ubuntu bash
+     ```
+   - For Ubuntu 24.04:
+     ```bash
+     $ docker exec -it ubuntu-24.04 bash
+     ```
+
+4. Run tests inside the container.
+    ```bash
+    $ cd /work
+    $ bundle install
+    $ bundle exec rspec
+    ```
 
 ## Development
 

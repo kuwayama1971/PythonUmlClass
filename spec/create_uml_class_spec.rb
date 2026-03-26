@@ -1,0 +1,159 @@
+# frozen_string_literal: true
+
+require "spec_helper"
+require_relative "../lib/create_uml_class"
+require "fileutils"
+require "tmpdir"
+
+RSpec.describe "create_uml_class" do
+  before do
+    @config = {
+      "python_path" => "python",
+      "formatter_path" => "dummy_formatter.py",
+      "exclude_path" => ""
+    }
+  end
+
+  describe "#get_python_path" do
+    it "returns the python_path from config if present" do
+      expect(get_python_path).to eq("python")
+    end
+
+    it "returns 'python' if config is empty" do
+      @config["python_path"] = ""
+      expect(get_python_path).to eq("python")
+    end
+  end
+
+  describe "#get_formatter_path" do
+    it "returns the formatter_path from config if present" do
+      expect(get_formatter_path).to eq("dummy_formatter.py")
+    end
+
+    it "returns empty string if config is empty" do
+      @config["formatter_path"] = ""
+      expect(get_formatter_path).to eq("")
+    end
+  end
+
+  describe "#create_uml_class" do
+    it "applies color to matched classes and their relationships" do
+      @config["class_color"] = "red"
+      @config["color_class_name"] = "Chat"
+      @config["inherit_color"] = "green"
+      @config["composition_color"] = "blue"
+
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "sample.py"), <<~PYTHON)
+          import ChatUser
+          class ChatRoom(ChatUser):
+              def __init__(self):
+                  self.user = ChatUser()
+        PYTHON
+
+        allow(Facter).to receive(:value).with(:kernel).and_return("linux")
+        allow(self).to receive(:open).and_yield(StringIO.new(""))
+        allow(File).to receive(:binread).and_return(<<~PYTHON)
+          import ChatUser
+          class ChatRoom(ChatUser):
+              def __init__(self):
+                  self.user = ChatUser()
+        PYTHON
+
+        uml = create_uml_class(dir, "out.puml")
+        
+        # Test class color applied to ChatRoom
+        expect(uml).to include("class \"sample.ChatRoom\" #red {")
+        
+        # Test inherit and composition line colors and class colors
+        expect(uml).to include("class \"ChatUser\" #red")
+        expect(uml).to include("\"sample.ChatRoom\" -[#red]-|> \"ChatUser\"")
+        expect(uml).to include("\"sample.ChatRoom\" *-[#red]- \"ChatUser\"")
+      end
+    end
+
+    it "parses python files and returns UML string" do
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "sample.py"), <<~PYTHON)
+          class MyClass:
+              def my_method(self):
+                  pass
+        PYTHON
+
+        # Mock Facter or system execution
+        allow(Facter).to receive(:value).with(:kernel).and_return("linux")
+        
+        # We need to mock open to simulate the formatter execution
+        allow(self).to receive(:open).and_yield(StringIO.new(""))
+        allow(File).to receive(:binread).and_return(<<~PYTHON)
+          class MyClass:
+              def my_method(self):
+                  pass
+        PYTHON
+
+        uml = create_uml_class(dir, "out.puml")
+        
+        expect(uml).to include("@startuml")
+        expect(uml).to include("class \"sample.MyClass\" {")
+        expect(uml).to include("+ my_method(self):")
+        expect(uml).to include("@enduml")
+      end
+    end
+
+    it "recognizes inline class initializations as composition" do
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "sample.py"), <<~PYTHON)
+          import HumanMessage
+          import AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        allow(Facter).to receive(:value).with(:kernel).and_return("linux")
+        allow(self).to receive(:open).and_yield(StringIO.new(""))
+        allow(File).to receive(:binread).and_return(<<~PYTHON)
+          import HumanMessage
+          import AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        uml = create_uml_class(dir, "out.puml")
+        
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"HumanMessage\"")
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"AIMessage\"")
+      end
+    end
+
+    it "resolves fully qualified names from imports" do
+      Dir.mktmpdir do |dir|
+        File.write(File.join(dir, "sample.py"), <<~PYTHON)
+          from langchain_core.messages import HumanMessage, AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        allow(Facter).to receive(:value).with(:kernel).and_return("linux")
+        allow(self).to receive(:open).and_yield(StringIO.new(""))
+        allow(File).to receive(:binread).and_return(<<~PYTHON)
+          from langchain_core.messages import HumanMessage, AIMessage
+          class ChatSession:
+              def add_message(self, user_input):
+                  chat_history.append(HumanMessage(content=user_input))
+                  chat_history.append(AIMessage(content="reply"))
+        PYTHON
+
+        uml = create_uml_class(dir, "out.puml")
+        
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"langchain_core.messages.HumanMessage\"")
+        expect(uml).to include("\"sample.ChatSession\" *-[##{@config["composition_color"]}]- \"langchain_core.messages.AIMessage\"")
+      end
+    end
+  end
+end

@@ -50,8 +50,15 @@ class WsServer < Sinatra::Base
           end
         end
         ws.onmessage do |msg|
+          # puts msg  # Do not print raw message that might contain binary/non-ascii
+          msg = msg.force_encoding("UTF-8") if msg.respond_to?(:force_encoding)
           puts msg
-          json = JSON.parse(File.read("#{$home_dir}/config/setting.json"))
+          begin
+            json = JSON.parse(File.read("#{$home_dir}/config/setting.json"))
+          rescue => e
+            puts "Error reading setting.json: #{e.message}"
+            json = {"setting_list" => []}
+          end
           json_config = config_json_hash(json)
           $app.set_config(json_config)
           if msg =~ /^exec:/

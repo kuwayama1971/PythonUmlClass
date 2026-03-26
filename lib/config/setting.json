@@ -1,5 +1,5 @@
 {
-  "version": 0.1,
+  "version": 0.2,
   "setting_list": [
     {
       "name": "plantuml",
@@ -7,6 +7,13 @@
       "type": "input",
       "select": "",
       "description": "PlantUMLコマンド"
+    },
+    {
+      "name": "python_path",
+      "value": " ~/.python3_venv/bin/python3",
+      "type": "input",
+      "select": "",
+      "description": "pythonのパス"
     },
     {
       "name": "formatter_path",
@@ -38,10 +45,24 @@
     },
     {
       "name": "exclude_path",
-      "value": "",
+      "value": "/venv/",
       "type": "input",
       "select": "",
       "description": "除外するパス（正規表現）"
+    },
+    {
+      "name": "class_color",
+      "value": "LightBlue",
+      "type": "input",
+      "select": "",
+      "description": "特定クラスの色"
+    },
+    {
+      "name": "color_class_name",
+      "value": "(langchain)",
+      "type": "input",
+      "select": "",
+      "description": "色を付けるクラスの正規表現"
     }
   ]
 }

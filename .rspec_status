@@ -1,0 +1,13 @@
+example_id                             | status | run_time        |
+-------------------------------------- | ------ | --------------- |
+./spec/PythonUmlClass_spec.rb[1:1]     | passed | 0.00068 seconds |
+./spec/create_uml_class_spec.rb[1:1:1] | passed | 0.00038 seconds |
+./spec/create_uml_class_spec.rb[1:1:2] | passed | 0.00008 seconds |
+./spec/create_uml_class_spec.rb[1:2:1] | passed | 0.00007 seconds |
+./spec/create_uml_class_spec.rb[1:2:2] | passed | 0.00006 seconds |
+./spec/create_uml_class_spec.rb[1:3:1] | passed | 0.00819 seconds |
+./spec/create_uml_class_spec.rb[1:3:2] | passed | 0.00183 seconds |
+./spec/create_uml_class_spec.rb[1:3:3] | passed | 0.00176 seconds |
+./spec/create_uml_class_spec.rb[1:3:4] | passed | 0.00141 seconds |
+./spec/test_vars_spec.rb[1:1]          | passed | 0.00508 seconds |
+./spec/test_vars_spec.rb[1:2]          | passed | 0.00081 seconds |
