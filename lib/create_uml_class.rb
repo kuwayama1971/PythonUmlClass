@@ -143,9 +143,9 @@ def create_uml_class(in_dir, _out_file)
 
   Dir.glob("#{in_dir}/**/*.py") do |f|
     puts f
-    puts @config["exclude_path"]
-    if @config["exclude_path"] != ""
-      if f =~ Regexp.new(@config["exclude_path"])
+    if @config && @config["exclude_path"]
+      puts @config["exclude_path"]
+      if @config["exclude_path"] != "" && f =~ Regexp.new(@config["exclude_path"])
         puts "skip #{f}"
         next
       end

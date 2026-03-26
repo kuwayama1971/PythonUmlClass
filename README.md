@@ -6,7 +6,9 @@ Read this in other languages: [English](README.md), [日本語](README_JA.md)
 ## Setup
     for ubuntu
     $ sudo apt install plantuml
-    $ apt install -y pip
+    $ sudo apt install python3.12-venv
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
     $ pip install astor
 
     install google-chrome

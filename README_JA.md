@@ -6,7 +6,9 @@ Pythonのクラス図を作成します。
 ## セットアップ
     Ubuntuの場合
     $ sudo apt install plantuml
-    $ apt install -y pip
+    $ sudo apt install python3.12-venv
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
     $ pip install astor
 
     Google Chromeのインストール

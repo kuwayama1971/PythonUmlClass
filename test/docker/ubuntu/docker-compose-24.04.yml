@@ -15,3 +15,7 @@ services:
     environment:
       DISPLAY: $DISPLAY    
     command: sleep infinity
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    
