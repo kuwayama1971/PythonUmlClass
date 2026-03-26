@@ -41,8 +41,14 @@ If bundler is not being used to manage dependencies, install the gem by executin
 - **Enhancement**: Improved the extraction of class compositions to properly detect class instantiations inside parentheses (e.g., `chat_history.append(HumanMessage(content=...))`).
 - **Enhancement**: Modified class extraction to output fully qualified module names (e.g., `langchain_core.messages.HumanMessage`) when an alias or module path is specified via `from module import Class` or `import module as alias`.
 - **Enhancement**: Filtered the extracted objects to include only the classes explicitly imported or defined locally within the parsed file.
+- **Enhancement**: Updated `README.md` to include instructions for setting up a Python virtual environment (`python3 -m venv .venv`).
 - **Bug Fix**: Addressed an issue where variables defined with `class_` prefix (like `class_var`) or variables without assignments but containing type hints (like `global_var: int`) were incorrectly identified.
 - **Bug Fix**: Fixed a bug where multi-line strings (`"""` or `'''`) or empty lines containing whitespace only within class functions caused indentation miscalculations, leading to local variables being improperly recognized as class or global variables.
+- **Bug Fix**: Fixed `uninitialized constant Rack::Server` error and improved Rack 3 support by unifying the server usage to `Rackup::Server` while maintaining backward compatibility with `Rack::Server` for older Rack 2 environments.
+- **Bug Fix**: Fixed an issue where the WebSocket connection URL in `main.js` was missing or updating to the wrong port.
+- **Bug Fix**: Resolved `SinatraWebsocket::Error::ConfigurationError` by explicitly passing `:server => 'thin'` to ensure websockets work smoothly in async environments.
+- **Bug Fix**: Handled an `Encoding::CompatibilityError` where incoming WebSocket messages from the browser were incorrectly interpreted as `US-ASCII`. They are now correctly parsed as `UTF-8`.
+- **Bug Fix**: Fixed a crash `no implicit conversion of nil into String` in `create_uml_class.rb` which occurred when `@config` was `nil`.
 
 ## Testing with Docker
 
